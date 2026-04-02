@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  fast_web:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      - PYTHONPATH=/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - fast_web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
